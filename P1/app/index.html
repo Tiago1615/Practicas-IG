@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <!-- STEP 1: Prepare the canvas -->
+  <head>
+    <style>
+      #my_Canvas {
+        border: 5px dotted blue;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="300" height="400" id="my_Canvas"></canvas>
+
+    <!-- vertex Shader -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
+      precision mediump float;
+
+      in vec2 aCoordinates;
+
+      void main(void) {
+        gl_Position = vec4(aCoordinates, 0, 1);
+        gl_PointSize = 10.0;
+      }
+    </script>
+
+    <!-- fragment Shader -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+      #version 300 es
+      precision mediump float;
+
+      out vec4 fragColor;
+      uniform vec4 uColor;
+
+      void main(void) {
+        //fragColor = vec4(0,0,1,1);
+        fragColor = uColor;
+      }
+    </script>
+
+    <script>
+      var y1 = 0.8;
+      var y2 = 0.8;
+      var y3 = 0.85;
+      var y4 = 0.85;
+
+      function init() {
+        // ============ STEP 1: Creating a canvas=================
+        canvas = document.getElementById("my_Canvas");
+        gl = canvas.getContext("webgl2");
+
+        //========== STEP 2: Create and compile shaders ==========
+
+        // Create a vertex shader object
+        var vertShader = gl.createShader(gl.VERTEX_SHADER);
+
+        // Attach vertex shader source code
+        var script = document.getElementById("vertex-shader");
+        var shaderString = script.text.trim();
+        gl.shaderSource(vertShader, shaderString);
+
+        // Compile the vertex shader
+        gl.compileShader(vertShader);
+
+        // Create fragment shader object
+        var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+        // Attach fragment shader source code
+        script = document.getElementById("fragment-shader");
+        shaderString = script.text.trim();
+        gl.shaderSource(fragShader, shaderString);
+
+        // Compile the fragmentt shader
+        gl.compileShader(fragShader);
+
+        // Create a shader program object to store
+        // the combined shader program
+        var shaderProgram = gl.createProgram();
+
+        // Attach a vertex shader
+        gl.attachShader(shaderProgram, vertShader);
+
+        // Attach a fragment shader
+        gl.attachShader(shaderProgram, fragShader);
+
+        // Link both programs
+        gl.linkProgram(shaderProgram);
+
+        // Use the combined shader program object
+        gl.useProgram(shaderProgram);
+
+        //======== STEP 3: Create buffer objects and associate shaders ========
+
+        // Create an empty buffer object to store the vertex buffer
+        vertex_buffer = gl.createBuffer();
+
+        // Bind vertex buffer object
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+
+        // Get the attribute location
+        var coordLocation = gl.getAttribLocation(shaderProgram, "aCoordinates");
+
+        // Point an attribute to the currently bound VBO
+        gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
+
+        // look up uniform locations
+        colorLocation = gl.getUniformLocation(shaderProgram, "uColor");
+        // Set a random color.
+
+        // Enable the attribute
+        gl.enableVertexAttribArray(coordLocation);
+
+        // Unbind the buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        //Show the drawings
+        render();
+      }
+
+      function render() {
+        //========= STEP 4: Create the geometry and draw ===============
+        // Clear the canvas
+        gl.clearColor(0.3, 0.7, 0.4, 1.0);
+
+        // Clear the color buffer bit
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Set the view port
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        // Bind appropriate array buffer to it
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+
+        //Carretera
+        drawRectangle(-0.5, -1, 1, 2, [0, 0, 0, 1]);
+
+        //Discontínuas
+        drawRectangle(-0.05, 0.99, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, 0.7, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, 0.3, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, -0.08, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, -0.45, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, -0.82, 0.1, 0.2, [1, 1, 1, 1]);
+        drawRectangle(-0.05, -1.18, 0.1, 0.2, [1, 1, 1, 1]);
+
+        //Coches
+        drawRectangle(-0.4, y1, 0.3, 0.4, [1, 0, 0, 1]);
+        drawRectangle(-0.4, y1, 0.1, 0.02, [1, 1, 0, 1]); //Luces
+        drawRectangle(-0.2, y1, 0.1, 0.02, [1, 1, 0, 1]); //Luces
+        drawRectangle(-0.37, y3, 0.24, 0.15, [0, 0, 0, 1]);
+
+        drawRectangle(0.1, y2, 0.3, 0.4, [0, 0, 1, 1]);
+        drawRectangle(0.3, y2, 0.1, 0.02, [1, 1, 0, 1]); //Luces
+        drawRectangle(0.1, y2, 0.1, 0.02, [1, 1, 0, 1]); //Luces
+        drawRectangle(0.13, y4, 0.24, 0.15, [0, 0, 0, 1]);
+
+        // Unbind the buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        y1 -= 0.008;
+        y2 -= 0.01;
+        y3 -= 0.008;
+        y4 -= 0.01;
+
+        if (y1 < -1.5) {
+          y1 = 0.8;
+          y3 = 0.85;
+          change = true;
+        }
+
+        if (y2 < -2) {
+          y2 = 0.8;
+          y4 = 0.85;
+          change = true;
+        }
+
+        window.requestAnimationFrame(render);
+      }
+
+      function drawRectangle(x, y, width, height, color) {
+        var x1 = x;
+        var x2 = x + width;
+        var y1 = y;
+        var y2 = y + height;
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]),
+          gl.STATIC_DRAW
+        );
+
+        gl.uniform4fv(colorLocation, color);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+      }
+
+      //Call init once the document has loaded
+      window.onload = init;
+    </script>
+  </body>
+</html>

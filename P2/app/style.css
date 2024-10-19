@@ -1,0 +1,64 @@
+body,
+html {
+  overflow: hidden;
+}
+#my_Canvas {
+  border: 5px dotted blue;
+  width: 95%;
+  touch-action: none;
+}
+#controls-score-container {
+  display: flex;
+  width: 96.5%;
+}
+#controls,
+#scorebar {
+  background-color: rgb(50% 40% 90%);
+}
+#controls {
+  border-right: rgb(40% 32% 72%) 5px solid;
+}
+#controls p {
+  color: white;
+  font-family: system-ui;
+  margin-bottom: 5px;
+  margin-top: 4px;
+  margin-left: 10px;
+}
+#controls #more-balls {
+  margin-left: 71px;
+}
+#scorebar {
+  width: 42%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#scorebar h3 {
+  color: white;
+  font-size: 32px;
+  font-family: system-ui;
+  margin: 0;
+}
+#button-container{
+  text-align: center
+}
+#more-balls-button, #reset-button{
+  background-color: rgb(50% 40% 90%);
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: system-ui;
+  color: white;
+  box-shadow: 0 9px rgb(30% 32% 62%);
+  margin-bottom: 15px;
+}
+#more-balls-button:hover, #reset-button:hover{
+  background-color: rgb(40% 32% 72%);
+}
+#more-balls-button:active, #reset-button:active{
+  background-color: rgb(33% 30% 67%);
+  box-shadow: 0 5px rgb(28% 22% 60%);
+  transform: translateY(4px);
+}

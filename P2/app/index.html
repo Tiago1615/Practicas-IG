@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <!-- STEP 1: Prepare the canvas -->
+  <head>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+  </head>
+
+  <body>
+    <canvas width="350" height="350" id="my_Canvas"></canvas>
+    <div id="controls-score-container">
+      <div id="controls">
+        <p>Control keys:</p>
+        <p>Player 1 - up arrow to go up, down arrow to go down</p>
+        <p>Player 2 - W key to go up, S key to go down</p>
+        <div id="button-container">
+          <button id="more-balls-button">More Balls</button>
+          <button id="reset-button">Reset</button>
+        </div>
+      </div>
+      <div id="scorebar">
+        <h3 id="score"> Score: 0-0</h3>
+      </div>
+    </div>
+
+    <!-- vertex Shader -->
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      #version 300 es
+      precision mediump float;
+
+      in vec2 aCoordinates;
+
+      void main(void) {
+        gl_Position = vec4(aCoordinates, 0, 1);
+        gl_PointSize = 10.0;
+      }
+    </script>
+
+    <!-- fragment Shader -->
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        #version 300 es
+        precision mediump float;
+
+        out vec4 fragColor;
+        uniform vec4 uColor;
+
+        void main(void) {
+          fragColor = uColor;
+        }
+    </script>
+
+    <script type="module">
+      import {
+        player1,
+        player2,
+        ball,
+        ball2,
+        ball3,
+        ball4,
+        ball5,
+        moreBalls,
+        line,
+      } from './gameLogic/gameVars.js';
+      
+      import {
+        drawRectangle,
+        animateBall,
+        updateBall,
+        checkBallOutOfBounds,
+        animatePlayer,
+        updatePlayer,
+        checkPlayerOutOfBounds,
+        checkBallHitPlayer,
+        checkUpperOrLowerHit,
+        score,
+        newBall,
+        addMoreBalls,
+        reset,
+      } from './gameLogic/gameFunctions.js';
+      
+      var gl;
+      var canvas;
+      var vertex_buffer;
+      var colorLocation;
+
+      var prevTouchY = {
+        p1: 0,
+        p2: 0,
+      };
+
+      function init() {
+        // ============ STEP 1: Creating a canvas=================
+        canvas = document.getElementById("my_Canvas");
+        gl = canvas.getContext("webgl2");
+
+        //========== STEP 2: Create and compile shaders ==========
+
+        // Create a vertex shader object
+        var vertShader = gl.createShader(gl.VERTEX_SHADER);
+
+        // Attach vertex shader source code
+        var script = document.getElementById("vertex-shader");
+        var shaderString = script.text.trim();
+        gl.shaderSource(vertShader, shaderString);
+
+        // Compile the vertex shader
+        gl.compileShader(vertShader);
+
+        // Create fragment shader object
+        var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+        // Attach fragment shader source code
+        script = document.getElementById("fragment-shader");
+        shaderString = script.text.trim();
+        gl.shaderSource(fragShader, shaderString);
+
+        // Compile the fragmentt shader
+        gl.compileShader(fragShader);
+
+        // Create a shader program object to store
+        // the combined shader program
+        var shaderProgram = gl.createProgram();
+
+        // Attach a vertex shader
+        gl.attachShader(shaderProgram, vertShader);
+
+        // Attach a fragment shader
+        gl.attachShader(shaderProgram, fragShader);
+
+        // Link both programs
+        gl.linkProgram(shaderProgram);
+
+        // Use the combined shader program object
+        gl.useProgram(shaderProgram);
+
+        //======== STEP 3: Create buffer objects and associate shaders ========
+
+        // Create an empty buffer object to store the vertex buffer
+        vertex_buffer = gl.createBuffer();
+
+        // Bind vertex buffer object
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+
+        // Get the attribute location
+        var coordLocation = gl.getAttribLocation(shaderProgram, "aCoordinates");
+
+        // Point an attribute to the currently bound VBO
+        gl.vertexAttribPointer(coordLocation, 2, gl.FLOAT, false, 0, 0);
+
+        // look up uniform locations
+        colorLocation = gl.getUniformLocation(shaderProgram, "uColor");
+
+        // Enable the attribute
+        gl.enableVertexAttribArray(coordLocation);
+
+        // Unbind the buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        render();
+      }
+
+      function render(time) {
+
+        // Clear the canvas
+        gl.clearColor(0.5, 0.4, 0.9, 1.0);
+
+        // Clear the color buffer bit
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
+        // Set the view port
+        gl.viewport(0, 0, canvas.width, canvas.height);
+
+        // Bind appropriate array buffer to it
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+
+        //Middle line
+        drawRectangle(line, gl, colorLocation);
+        
+        //Animate ball
+        animateBall(ball, gl, colorLocation);
+        animateBall(ball2, gl, colorLocation);
+        animateBall(ball3, gl, colorLocation);
+        animateBall(ball4, gl, colorLocation);
+        animateBall(ball5, gl, colorLocation);
+
+        animatePlayer(player1, gl, colorLocation);
+        animatePlayer(player2, gl, colorLocation);
+
+        // Unbind the buffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        // empezamos bucle animación
+        window.requestAnimationFrame(render);
+        document.onkeydown = onKeyDown;
+        document.onkeyup = onKeyUp;
+
+        //movil
+        document.ontouchmove = onTouchMove;
+        document.ontouchstart = onTouchStart;
+        document.ontouchend = onTouchEnd;
+      }
+
+      //Key events
+      function onKeyDown(key) {
+        switch (key.keyCode) {
+          // up arrow
+          case 38: {
+            player1.movement = 0.02;
+            break;
+          }
+          // down arrow
+          case 40: {
+            player1.movement = -0.02;
+            break;
+          }
+          //W === up arrow
+          case 87: {
+            player2.movement = 0.02;
+            break;
+          }
+          //S === down arrow
+          case 83: {
+            player2.movement = -0.02;
+            break;
+          }
+        }
+      }
+
+      function onKeyUp(key) {
+        switch (key.keyCode) {
+          // up arrow
+          case 38: {
+            player1.movement = 0;
+            break;
+          }
+          // down arrow
+          case 40: {
+            player1.movement = 0;
+            break;
+          }
+          //W key === up arrow
+          case 87: {
+            player2.movement = 0;
+            break;
+          }
+          //S key === down arrow
+          case 83: {
+            player2.movement = 0;
+            break;
+          }
+        }
+      }
+
+      //Eventos en móvil
+      function onTouchStart(e) {
+        var touchobj = e.changedTouches[0];
+        var touchX = touchobj.clientX;
+
+        if (touchX < canvas.width / 2) {
+          prevTouchY.p1 = parseInt(touchobj.clientY);
+        }
+        else{
+          prevTouchY.p2 = parseInt(touchobj.clientY);
+        }
+      }
+
+      function onTouchMove(e) {
+        for (var i = 0; i < e.changedTouches.length; i++){
+          var touchobj = e.changedTouches[i];
+          var touchX = touchobj.clientX;
+          var touchY = touchobj.clientY;
+          
+          if (touchX < canvas.width/2){
+            var difY = touchY - prevTouchY.p1;
+            player1.movement = -difY * 0.005;
+            prevTouchY.p1 = touchY;
+          }
+          else{
+            var difY = touchY - prevTouchY.p2;
+            player2.movement = -difY * 0.005;
+            prevTouchY.p2 = touchY;
+          }
+        }
+      }
+
+      function onTouchEnd(e) {
+        for (var i = 0; i < e.changedTouches.length; i++){
+          var touchobj = e.changedTouches[i];
+          var touchX = touchobj.clientX;
+          
+          if (touchX < canvas.width/2){
+            player1.movement = 0;
+          }
+          else{
+            player2.movement = 0;
+          }
+        }
+      }
+
+      window.onload = init;
+      var moreBallsButton = document.getElementById("more-balls-button");
+      var resetButton = document.getElementById("reset-button");
+      
+      moreBallsButton.addEventListener("click", addMoreBalls);
+      resetButton.addEventListener("click", reset);
+    </script>
+  </body>
+</html>

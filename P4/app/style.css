@@ -1,0 +1,22 @@
+body,
+html {
+  overflow: hidden;
+}
+#my_Canvas {
+  border: 5px dotted blue;
+  width: 95%;
+}
+#controls-container{
+  width: 96.5%;
+}
+#controls{
+  background-color: rgb(50% 40% 90%);
+  text-align: center;
+}
+#controls p {
+  color: white;
+  font-family: system-ui;
+  margin-bottom: 5px;
+  margin-top: 4px;
+  margin-left: 10px;
+}

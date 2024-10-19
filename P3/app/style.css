@@ -1,0 +1,13 @@
+body,
+html {
+  overflow: hidden;
+}
+#my_Canvas {
+  border: 5px dotted blue;
+  width: 95%;
+}
+.dg.main{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
